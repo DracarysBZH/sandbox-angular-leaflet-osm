@@ -8,7 +8,11 @@
   "projects": {
     "sandbox-carto": {
       "projectType": "application",
-      "schematics": {},
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
@@ -25,7 +29,11 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/vendor.css",
+              "src/styles.scss"
+            ],
+            "allowedCommonJsDependencies": [
+              "leaflet"
             ]
           },
           "configurations": {
