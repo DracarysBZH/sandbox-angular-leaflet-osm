@@ -23,7 +23,6 @@ Construire la feature par couches, dans cet ordre:
   - types associes si necessaires
 - Verifier Tailwind actif sur templates Angular
 - Ajouter imports CSS Leaflet / MarkerCluster
-- Corriger les icones Leaflet par defaut (asset path ou icons custom)
 
 ### Definition of done
 
@@ -66,6 +65,7 @@ Construire la feature par couches, dans cet ordre:
 
 - Initialiser map Leaflet (AfterViewInit)
 - Configurer OSM tile layer
+- Corriger les icones Leaflet par defaut (asset path ou icons custom)
 - Creer `MarkerClusterGroup`
 - Generer un marker par lieu et stocker dans `markersById`
 - Gerer `ngOnDestroy` / `map.remove()`

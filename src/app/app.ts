@@ -1,11 +1,16 @@
-import { Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 @Component({
   selector: 'app-root',
   imports: [],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
-  protected readonly title = signal('sandbox-carto');
+  protected readonly phaseOneChecklist = [
+    'npm run start affiche une page Angular sans erreur',
+    'Tailwind applique des classes visibles',
+    'Leaflet CSS / MarkerCluster CSS chargés correctement',
+  ];
 }
