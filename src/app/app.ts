@@ -1,24 +1,52 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { MapViewComponent } from './components/map-view/map-view.component';
+import { RightPanelComponent } from './components/right-panel/right-panel.component';
 import { RENNES_CULTURAL_PLACES } from './data/rennes-cultural-places.mock';
 import { CulturalPlaceType } from './models/cultural-place.model';
 
 @Component({
   selector: 'app-root',
-  imports: [],
+  imports: [MapViewComponent, RightPanelComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
-  protected readonly progressChecklist = [
-    'Phase 1 terminée: setup Angular/Tailwind/Leaflet CSS',
-    'Phase 2 terminée: types métier + mock Rennes (48 lieux)',
-    'Compilation Angular en mode strict OK',
-  ];
+  protected readonly allPlaces = RENNES_CULTURAL_PLACES;
+  protected readonly availableTypes = Object.values(CulturalPlaceType) as readonly CulturalPlaceType[];
 
-  protected readonly totalPlaces = RENNES_CULTURAL_PLACES.length;
-  protected readonly typeBreakdown = Object.values(CulturalPlaceType).map((type: CulturalPlaceType) => ({
-    type,
-    count: RENNES_CULTURAL_PLACES.filter((place) => place.type === type).length,
-  }));
+  protected readonly selectedTypes = signal<readonly CulturalPlaceType[]>([]);
+  protected readonly selectedPlaceId = signal<string | null>(null);
+  protected readonly hoveredPlaceId = signal<string | null>(null);
+
+  protected readonly visibleFilteredPlaces = computed(() => {
+    const activeTypes = this.selectedTypes();
+    const places = activeTypes.length
+      ? this.allPlaces.filter((place) => activeTypes.includes(place.type))
+      : this.allPlaces;
+
+    return [...places].sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+  });
+
+  protected toggleType(type: CulturalPlaceType): void {
+    this.selectedTypes.update((current) =>
+      current.includes(type) ? current.filter((item) => item !== type) : [...current, type],
+    );
+  }
+
+  protected setHoveredPlace(placeId: string | null): void {
+    this.hoveredPlaceId.set(placeId);
+  }
+
+  protected selectPlace(placeId: string): void {
+    this.selectedPlaceId.update((current) => (current === placeId ? null : placeId));
+  }
+
+  protected handleMarkerSelected(placeId: string): void {
+    this.selectPlace(placeId);
+  }
+
+  protected handleViewportChanged(): void {
+    // Phase 5: viewport filtering will be handled here.
+  }
 }

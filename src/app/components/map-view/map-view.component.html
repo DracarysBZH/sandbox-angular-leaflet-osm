@@ -1,0 +1,42 @@
+<section
+  class="flex h-full min-h-[26rem] flex-col rounded-2xl border border-white/10 bg-slate-950/40 p-4"
+  aria-labelledby="map-view-title"
+>
+  <div class="flex items-start justify-between gap-3">
+    <div>
+      <h2 id="map-view-title" class="text-sm font-semibold tracking-wide text-white uppercase">
+        Carte (phase 4)
+      </h2>
+      <p class="mt-1 text-sm text-slate-300">
+        `MapViewComponent` isole déjà les responsabilités Leaflet, la carte réelle arrive à la phase 4.
+      </p>
+    </div>
+    <button
+      type="button"
+      class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200 transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+      (click)="emitMockViewport()"
+    >
+      Simuler viewport
+    </button>
+  </div>
+
+  <div
+    class="mt-4 grid min-h-0 flex-1 place-items-center rounded-xl border border-dashed border-white/15 bg-linear-to-br from-slate-900/70 to-slate-950/80 p-6 text-center"
+    aria-label="Placeholder de la carte"
+  >
+    <div class="max-w-sm space-y-3">
+      <p class="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">Leaflet placeholder</p>
+      <p class="text-sm leading-6 text-slate-200">
+        {{ places().length }} markers seront rendus ici avec clustering à la phase 4.
+      </p>
+
+      @if (selectedPlaceName(); as selectedPlaceName) {
+        <p class="text-xs text-emerald-200">Sélection: {{ selectedPlaceName }}</p>
+      }
+
+      @if (hoveredPlaceName(); as hoveredPlaceName) {
+        <p class="text-xs text-sky-200">Survol: {{ hoveredPlaceName }}</p>
+      }
+    </div>
+  </div>
+</section>
