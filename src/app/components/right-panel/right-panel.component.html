@@ -1,0 +1,49 @@
+<aside
+  class="flex h-full flex-col rounded-2xl border border-white/10 bg-slate-950/40 p-4"
+  aria-labelledby="right-panel-title"
+>
+  <div class="flex items-start justify-between gap-3">
+    <div>
+      <h2 id="right-panel-title" class="text-sm font-semibold tracking-wide text-white uppercase">
+        Lieux culturels
+      </h2>
+      <p class="mt-1 text-sm text-slate-300">{{ visibleCountLabel() }}</p>
+    </div>
+    <span class="rounded-full bg-white/5 px-2 py-1 text-xs text-slate-200">Phase 3</span>
+  </div>
+
+  <div class="mt-4">
+    <p class="text-xs font-medium tracking-wide text-slate-300 uppercase">Types (prépa phase 6)</p>
+    <div class="mt-2 flex flex-wrap gap-2">
+      @for (type of cultureMapStateService.availableTypes; track type) {
+        <button
+          type="button"
+          class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-200 transition data-[state=active]:border-emerald-300/50 data-[state=active]:bg-emerald-300/10 data-[state=active]:text-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+          [attr.data-state]="isTypeSelected(type) ? 'active' : 'idle'"
+          (click)="onTypeToggle(type)"
+        >
+          {{ type }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="mt-4 min-h-0 flex-1">
+    @if (cultureMapStateService.visibleFilteredPlaces().length === 0) {
+      <div
+        class="grid h-full min-h-40 place-items-center rounded-xl border border-dashed border-white/15 bg-black/10 p-4 text-center"
+        aria-live="polite"
+      >
+        <p class="text-sm text-slate-300">Aucun lieu visible pour le moment.</p>
+      </div>
+    } @else {
+      <ul class="grid max-h-[58dvh] gap-3 overflow-auto pr-1" aria-label="Liste des lieux culturels">
+        @for (place of cultureMapStateService.visibleFilteredPlaces(); track place.id) {
+          <li>
+            <app-place-card [place]="place" />
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</aside>

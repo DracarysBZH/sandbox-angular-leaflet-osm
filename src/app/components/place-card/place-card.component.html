@@ -1,0 +1,33 @@
+<button
+  type="button"
+  class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left transition data-[state=selected]:border-emerald-300 data-[state=selected]:bg-emerald-300/10 data-[state=selected]:shadow-lg data-[state=selected]:shadow-emerald-950/30 data-[state=hovered]:border-sky-300/60 data-[state=hovered]:bg-sky-300/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
+  [attr.aria-pressed]="isSelected() ? 'true' : 'false'"
+  [attr.data-state]="isSelected() ? 'selected' : isHovered() ? 'hovered' : 'idle'"
+  (mouseenter)="onMouseEnter()"
+  (mouseleave)="onMouseLeave()"
+  (focus)="onMouseEnter()"
+  (blur)="onMouseLeave()"
+  (click)="onSelect()"
+>
+  <div class="flex items-start justify-between gap-3">
+    <div class="min-w-0">
+      <p class="text-sm font-semibold text-white">{{ place().name }}</p>
+      <p class="mt-1 text-xs text-slate-300">{{ place().address }}, {{ place().city }}</p>
+    </div>
+    <span
+      class="shrink-0 self-start whitespace-nowrap rounded-full bg-black/20 px-2 py-1 text-[10px] font-medium text-slate-200"
+    >
+      {{ place().type }}
+    </span>
+  </div>
+
+  <p class="mt-2 text-sm leading-5 text-slate-200">{{ place().shortDescription }}</p>
+
+  <ul class="mt-3 flex flex-wrap gap-1.5" aria-label="Tags du lieu">
+    @for (tag of place().tags; track tag) {
+      <li class="rounded-full border border-white/10 bg-black/10 px-2 py-1 text-[10px] text-slate-300">
+        {{ tag }}
+      </li>
+    }
+  </ul>
+</button>

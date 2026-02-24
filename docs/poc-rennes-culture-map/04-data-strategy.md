@@ -14,14 +14,20 @@ Fournir un dataset local credible pour demontrer le comportement de la feature s
 
 ## Modele de donnees
 
+Implementation retenue:
+
+- `CulturalPlaceType` en `enum` string (contrat front/back explicite)
+- `CulturalPlace` en interface TypeScript stricte
+
 ```ts
-export type CulturalPlaceType =
-  | 'museum'
-  | 'gallery'
-  | 'theater'
-  | 'library'
-  | 'heritage'
-  | 'arts-center';
+export enum CulturalPlaceType {
+  Museum = 'museum',
+  Gallery = 'gallery',
+  Theater = 'theater',
+  Library = 'library',
+  Heritage = 'heritage',
+  ArtsCenter = 'arts-center',
+}
 
 export interface CulturalPlace {
   id: string;
@@ -82,3 +88,9 @@ Tags courts utiles pour demo:
 - Verifier types valides
 - Verifier presence des champs obligatoires
 - Verifier qu'un dezoom montre des clusters (densite suffisante)
+
+## Note implementation actuelle
+
+- Le mock est un fichier TS local strictement type
+- Pas de helper de validation runtime dans l'application (choix volontaire pour garder la feature legere)
+- Si besoin, les checks de coherence du mock pourront etre ajoutes en tests (dataset/unit)
