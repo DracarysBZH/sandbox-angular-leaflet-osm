@@ -15,7 +15,7 @@
   <div class="mt-4">
     <p class="text-xs font-medium tracking-wide text-slate-300 uppercase">Types (prépa phase 6)</p>
     <div class="mt-2 flex flex-wrap gap-2">
-      @for (type of availableTypes(); track type) {
+      @for (type of cultureMapStateService.availableTypes; track type) {
         <button
           type="button"
           class="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-slate-200 transition data-[state=active]:border-emerald-300/50 data-[state=active]:bg-emerald-300/10 data-[state=active]:text-emerald-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
@@ -29,7 +29,7 @@
   </div>
 
   <div class="mt-4 min-h-0 flex-1">
-    @if (visiblePlaces().length === 0) {
+    @if (cultureMapStateService.visibleFilteredPlaces().length === 0) {
       <div
         class="grid h-full min-h-40 place-items-center rounded-xl border border-dashed border-white/15 bg-black/10 p-4 text-center"
         aria-live="polite"
@@ -38,15 +38,9 @@
       </div>
     } @else {
       <ul class="grid max-h-[58dvh] gap-3 overflow-auto pr-1" aria-label="Liste des lieux culturels">
-        @for (place of visiblePlaces(); track place.id) {
+        @for (place of cultureMapStateService.visibleFilteredPlaces(); track place.id) {
           <li>
-            <app-place-card
-              [place]="place"
-              [selected]="selectedPlaceId() === place.id"
-              [hovered]="hoveredPlaceId() === place.id"
-              (cardHover)="onCardHover($event)"
-              (cardSelect)="onCardSelect($event)"
-            />
+            <app-place-card [place]="place" />
           </li>
         }
       </ul>

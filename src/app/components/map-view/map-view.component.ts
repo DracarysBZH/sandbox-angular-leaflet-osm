@@ -1,13 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
-import { CulturalPlace } from '../../models/cultural-place.model';
-
-export interface MapViewportBounds {
-  readonly north: number;
-  readonly south: number;
-  readonly east: number;
-  readonly west: number;
-}
-
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { CultureMapStateService } from '../../services/culture-map-state.service';
 @Component({
   selector: 'app-map-view',
   imports: [],
@@ -16,37 +8,12 @@ export interface MapViewportBounds {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MapViewComponent {
-  readonly places = input.required<readonly CulturalPlace[]>();
-  readonly selectedPlaceId = input<string | null>(null);
-  readonly hoveredPlaceId = input<string | null>(null);
+  protected readonly cultureMapStateService = inject(CultureMapStateService);
 
-  readonly viewportChanged = output<MapViewportBounds>();
-  readonly markerSelected = output<string>();
-
-  protected readonly selectedPlaceName = computed(() => {
-    const selectedId = this.selectedPlaceId();
-    if (!selectedId) {
-      return null;
-    }
-
-    return this.places().find((place) => place.id === selectedId)?.name ?? null;
-  });
-
-  protected readonly hoveredPlaceName = computed(() => {
-    const hoveredId = this.hoveredPlaceId();
-    if (!hoveredId) {
-      return null;
-    }
-
-    return this.places().find((place) => place.id === hoveredId)?.name ?? null;
-  });
-
-  protected emitMockViewport(): void {
-    this.viewportChanged.emit({
-      north: 48.14,
-      south: 48.07,
-      east: -1.62,
-      west: -1.72,
-    });
-  }
+  protected readonly selectedPlaceName = computed(
+    () => this.cultureMapStateService.selectedPlace()?.name ?? null,
+  );
+  protected readonly hoveredPlaceName = computed(
+    () => this.cultureMapStateService.hoveredPlace()?.name ?? null,
+  );
 }

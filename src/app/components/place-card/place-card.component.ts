@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { CulturalPlace } from '../../models/cultural-place.model';
+import { CultureMapStateService } from '../../services/culture-map-state.service';
 
 @Component({
   selector: 'app-place-card',
@@ -12,24 +13,24 @@ import { CulturalPlace } from '../../models/cultural-place.model';
   },
 })
 export class PlaceCardComponent {
-  readonly place = input.required<CulturalPlace>();
-  readonly selected = input(false);
-  readonly hovered = input(false);
+  private readonly cultureMapStateService = inject(CultureMapStateService);
 
-  readonly cardHover = output<string | null>();
-  readonly cardSelect = output<string>();
+  public readonly place = input.required<CulturalPlace>();
 
-  protected readonly ariaPressed = computed(() => String(this.selected()));
+  protected readonly isSelected = computed(() =>
+    this.cultureMapStateService.isPlaceSelected(this.place().id),
+  );
+  protected readonly isHovered = computed(() => this.cultureMapStateService.isPlaceHovered(this.place().id));
 
   protected onMouseEnter(): void {
-    this.cardHover.emit(this.place().id);
+    this.cultureMapStateService.setHoveredPlace(this.place().id);
   }
 
   protected onMouseLeave(): void {
-    this.cardHover.emit(null);
+    this.cultureMapStateService.setHoveredPlace(null);
   }
 
   protected onSelect(): void {
-    this.cardSelect.emit(this.place().id);
+    this.cultureMapStateService.toggleSelectedPlace(this.place().id);
   }
 }

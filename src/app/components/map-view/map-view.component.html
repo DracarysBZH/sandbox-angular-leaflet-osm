@@ -11,13 +11,6 @@
         `MapViewComponent` isole déjà les responsabilités Leaflet, la carte réelle arrive à la phase 4.
       </p>
     </div>
-    <button
-      type="button"
-      class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-200 transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
-      (click)="emitMockViewport()"
-    >
-      Simuler viewport
-    </button>
   </div>
 
   <div
@@ -27,7 +20,7 @@
     <div class="max-w-sm space-y-3">
       <p class="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">Leaflet placeholder</p>
       <p class="text-sm leading-6 text-slate-200">
-        {{ places().length }} markers seront rendus ici avec clustering à la phase 4.
+        {{ cultureMapStateService.allPlaces.length }} markers seront rendus ici avec clustering à la phase 4.
       </p>
 
       @if (selectedPlaceName(); as selectedPlaceName) {
