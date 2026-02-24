@@ -8,28 +8,25 @@
         Carte (phase 4)
       </h2>
       <p class="mt-1 text-sm text-slate-300">
-        `MapViewComponent` isole déjà les responsabilités Leaflet, la carte réelle arrive à la phase 4.
+        Carte Leaflet + clusters sur les lieux culturels de Rennes.
       </p>
     </div>
   </div>
 
   <div
-    class="mt-4 grid min-h-0 flex-1 place-items-center rounded-xl border border-dashed border-white/15 bg-linear-to-br from-slate-900/70 to-slate-950/80 p-6 text-center"
-    aria-label="Placeholder de la carte"
+    class="mt-4 min-h-0 flex-1 overflow-hidden rounded-xl border border-white/10 bg-slate-900/50"
+    aria-label="Carte interactive des lieux culturels"
   >
-    <div class="max-w-sm space-y-3">
-      <p class="text-xs font-semibold tracking-[0.18em] text-slate-400 uppercase">Leaflet placeholder</p>
-      <p class="text-sm leading-6 text-slate-200">
-        {{ cultureMapStateService.allPlaces.length }} markers seront rendus ici avec clustering à la phase 4.
-      </p>
-
-      @if (selectedPlaceName(); as selectedPlaceName) {
-        <p class="text-xs text-emerald-200">Sélection: {{ selectedPlaceName }}</p>
-      }
-
-      @if (hoveredPlaceName(); as hoveredPlaceName) {
-        <p class="text-xs text-sky-200">Survol: {{ hoveredPlaceName }}</p>
-      }
-    </div>
+    <div #mapContainer class="map-surface h-full w-full" aria-hidden="true"></div>
   </div>
+
+  <p class="mt-3 text-xs text-slate-300" aria-live="polite">
+    {{ cultureMapStateService.allPlaces.length }} points chargés.
+    @if (selectedPlaceName(); as selectedPlaceName) {
+      <span class="text-emerald-200"> Sélection: {{ selectedPlaceName }}.</span>
+    }
+    @if (hoveredPlaceName(); as hoveredPlaceName) {
+      <span class="text-sky-200"> Survol: {{ hoveredPlaceName }}.</span>
+    }
+  </p>
 </section>
