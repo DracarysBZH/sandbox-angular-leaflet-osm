@@ -8,9 +8,6 @@ import { CultureMapStateService } from '../../services/culture-map-state.service
   templateUrl: './place-card.component.html',
   styleUrl: './place-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: {
-    class: 'block',
-  },
 })
 export class PlaceCardComponent {
   public readonly place = input.required<CulturalPlace>();
