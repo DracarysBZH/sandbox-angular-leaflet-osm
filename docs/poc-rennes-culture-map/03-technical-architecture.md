@@ -23,38 +23,65 @@
 - `src/app/components/place-card/place-card.component.scss` (ou minimal)
 - `src/app/models/cultural-place.model.ts`
 - `src/app/data/rennes-cultural-places.mock.ts`
+- `src/app/services/culture-map-state.service.ts`
 - `src/app/utils/place-filters.ts`
 - `src/app/utils/place-filters.spec.ts`
 
+## Positionnement architectural (etat actuel)
+
+Choix retenu pour ce projet:
+
+- feature orientee produit (pas de recherche de genericite)
+- store de feature partage via `CultureMapStateService`
+- `App` minimal (shell de page + composition)
+- composants UI autorises a etre couples au store si cela simplifie la plomberie
+
+Ce choix privilegie:
+
+- vitesse d'iteration
+- lisibilite du flux metier
+- simplicite pour les phases Leaflet/viewport/interactions
+
 ## Etat UI (source de verite)
+
+Etat logique principal (store de feature):
 
 - `places: CulturalPlace[]`
 - `selectedTypes: Set<CulturalPlaceType>`
-- `selectedPlaceId: string | null`
-- `hoveredPlaceId: string | null`
+- `selectedPlace: CulturalPlace | null`
+- `hoveredPlace: CulturalPlace | null`
 - `visibleFilteredPlaces: CulturalPlace[]`
-- `map: L.Map | null`
-- `markerClusterGroup: L.MarkerClusterGroup | null`
-- `markersById: Map<string, L.Marker>`
+- `map: L.Map | null` (phase 4+)
+- `markerClusterGroup: L.MarkerClusterGroup | null` (phase 4+)
+- `markersById: Map<string, L.Marker>` (phase 4+)
 
 ## Strategie de separation
 
 ### Composant `App`
 
 Responsabilites:
-- gerer l'etat global de la page (filtres, selection, hover, lieux visibles)
+
+- composer la page (header + zone carte/panel)
+- rester minimal et lisible
+- servir de shell d'entree de la feature
+
+### Service `CultureMapStateService`
+
+Responsabilites:
+
 - charger le dataset mock local
-- orchestrer les interactions entre la carte et le panel
-- composer les composants enfants (carte + panel)
+- stocker l'etat de feature (filtres, hover, selection)
+- exposer les signaux calcules (`visibleFilteredPlaces`)
+- centraliser les mutations (`toggleType`, `setHoveredPlace`, `toggleSelectedPlace`)
 
 ### Composant `MapViewComponent`
 
 Responsabilites:
 
-- initialiser la carte
-- creer/gerer les markers et clusters
-- ecouter les evenements Leaflet
-- emettre les evenements carte vers le container (`viewport`, `marker click`)
+- phase 3: placeholder de carte + lecture etat hover/selection depuis le store
+- phase 4+: initialiser la carte Leaflet
+- phase 4+: creer/gerer markers + clusters
+- phase 4/5+: brancher les evenements Leaflet (`moveend`, clic marker)
 - appliquer les etats visuels des markers (`hovered`, `selected`)
 
 ### Composant `RightPanelComponent`
@@ -62,8 +89,9 @@ Responsabilites:
 Responsabilites:
 
 - afficher compteur, filtres, etat vide et liste des lieux visibles
-- relayer les interactions utilisateur (hover/click sur card, toggle filtre)
-- deleguer l'affichage unitaire au composant `PlaceCardComponent`
+- lire les donnees utiles depuis le store
+- appliquer les actions de filtre via le store
+- deleguer le rendu unitaire a `PlaceCardComponent`
 
 ### Composant `PlaceCardComponent`
 
@@ -71,15 +99,15 @@ Responsabilites:
 
 - afficher les details d'un lieu culturel
 - gerer les etats visuels de la card (`hovered`, `selected`)
-- emettre les interactions de card (hover/click)
+- appliquer hover/selection via le store de feature
 
 But:
 
-- composant presentational reutilisable et sans dependance Leaflet
+- composant UI contextuel a la feature (couplage accepte)
 
 ### Utilitaires purs (`place-filters.ts`)
 
-Responsabilites:
+Responsabilites (phase 5/8):
 
 - appliquer filtre type
 - filtrer par viewport (via bounds simplifie ou adaptateur)
@@ -89,23 +117,25 @@ But:
 
 - rendre les tests unitaires simples, sans dependre du DOM Leaflet
 
-## Flux de donnees
+## Flux de donnees (etat actuel puis cible)
 
-1. `App` charge `allPlaces` depuis mock local
-2. `App` passe l'etat a `MapViewComponent` et `RightPanelComponent`
-3. `MapViewComponent` initialise Leaflet, les markers et le `MarkerClusterGroup`
-4. A chaque `moveend`, `MapViewComponent` emet le viewport courant
-5. `App` applique:
+### Phase 3 (actuel)
+
+1. `CultureMapStateService` charge `allPlaces` depuis mock local
+2. `App` compose `MapViewComponent` et `RightPanelComponent`
+3. `RightPanelComponent` lit `visibleFilteredPlaces` et `availableTypes` depuis le store
+4. `PlaceCardComponent` met a jour hover/selection via le store
+5. `MapViewComponent` lit l'etat hover/selection depuis le store
+
+### Phase 4/5+ (cible)
+
+1. `MapViewComponent` initialise Leaflet + markers/clusters
+2. `MapViewComponent` remonte / applique les changements de viewport
+3. Le store combine:
    - filtre type
    - filtre viewport
    - tri
-   - mise a jour de `visibleFilteredPlaces`
-6. `RightPanelComponent` rend la liste et les filtres
-7. Interactions UI:
-   - `PlaceCardComponent` hover/click -> `RightPanelComponent` -> `App`
-   - `App` met a jour `hoveredPlaceId` / `selectedPlaceId`
-   - `App` transmet les changements a `MapViewComponent`
-   - `MapViewComponent` applique surbrillance et zoom
+4. `RightPanelComponent` se met a jour automatiquement via `visibleFilteredPlaces`
 
 ## Clustering
 
@@ -122,52 +152,32 @@ Deux niveaux d'etat visuel:
 
 Implementation recommandee:
 
-- `L.divIcon` custom pour controler les classes CSS (`is-selected`, `is-hovered`)
+- `L.divIcon` custom pour controler les classes CSS (`is-selected`, `is-hovered`) ou un attribut `data-state`
 - Fonction de refresh de l'icone du marker a partir de l'etat courant
 
-## Contrats de composants (Inputs / Outputs)
+## Contrats de composants (phase 3 actuelle)
 
 ### `MapViewComponent`
 
-Inputs:
-
-- `places: CulturalPlace[]`
-- `selectedPlaceId: string | null`
-- `hoveredPlaceId: string | null`
-- `focusPlaceId: string | null` (optionnel pour declencher un zoom depuis le panel)
-
-Outputs:
-
-- `viewportChanged` (bounds courants)
-- `markerSelected` (`placeId`)
+- lit le store de feature (`CultureMapStateService`)
+- pas de Leaflet branche en phase 3 (placeholder UI)
 
 ### `RightPanelComponent`
 
-Inputs:
-
-- `visiblePlaces: CulturalPlace[]`
-- `selectedTypes: CulturalPlaceType[]` (ou set converti)
-- `selectedPlaceId: string | null`
-- `hoveredPlaceId: string | null`
-
-Outputs:
-
-- `typeToggled` (`CulturalPlaceType`)
-- `placeHovered` (`placeId | null`)
-- `placeSelected` (`placeId`)
+- lit les listes / filtres depuis le store
+- applique `toggleType(...)` via le store
+- delegue le rendu des items a `PlaceCardComponent`
 
 ### `PlaceCardComponent`
 
 Inputs:
 
 - `place: CulturalPlace`
-- `selected: boolean`
-- `hovered: boolean`
 
-Outputs:
+Etat / actions:
 
-- `cardHover` (`placeId | null`)
-- `cardSelect` (`placeId`)
+- derive `selected/hovered` depuis le store (a partir de `place`)
+- met a jour hover/selection via le store
 
 ## Integration Tailwind / styles globaux
 
@@ -177,3 +187,8 @@ Outputs:
   - conteneur Leaflet
   - marker custom
   - ajustements cluster/Leaflet
+
+Note pratique Angular + Tailwind:
+
+- Eviter les bindings Angular du type `[class.bg-.../10]` (peu ergonomiques pour les IDE)
+- Preferer `data-state` + variantes Tailwind (`data-[state=selected]:...`)

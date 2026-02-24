@@ -6,12 +6,18 @@ Construire la feature par couches, dans cet ordre:
 
 1. socle projet (deps/styles)
 2. donnees/types
-3. architecture composants (container + carte + panel + card)
+3. architecture composants + store de feature
 4. carte + markers
 5. panel synchronise viewport
-6. filtres
-7. interactions avancees (hover/selection)
+6. filtres par type (finalisation UX)
+7. interactions avancees (hover/selection carte/panel)
 8. tests et stabilisation
+
+## Etat d'avancement (mis a jour)
+
+- Phase 1: terminee
+- Phase 2: terminee
+- Phase 3: en cours / quasi finalisee (architecture UI + store de feature)
 
 ## Phase 1 - Setup technique
 
@@ -36,12 +42,13 @@ Construire la feature par couches, dans cet ordre:
 
 - Creer `CulturalPlaceType` et `CulturalPlace`
 - Creer `rennes-cultural-places.mock.ts` (40-60 lieux)
-- Ajouter helpers de validation simples (optionnel)
+- (Optionnel) Ajouter helpers/tests de validation de dataset
 
 ### Definition of done
 
 - Le mock est importable et typage strict OK
 - Les coordonnees couvrent Rennes et produisent des zones denses
+- Contrat de type coherent avec le back (`enum` string accepte)
 
 ## Phase 3 - Architecture composants
 
@@ -50,14 +57,16 @@ Construire la feature par couches, dans cet ordre:
 - Creer `MapViewComponent`
 - Creer `RightPanelComponent`
 - Creer `PlaceCardComponent`
-- Definir les `@Input()` / `@Output()` entre `App` et les composants
-- Garder `App` comme container (etat + orchestration)
+- Garder `App` simple (header + layout)
+- Centraliser l'etat de feature (ex: `CultureMapStateService`)
+- Mettre en place hover/selection de base cote liste (sans Leaflet reel)
 
 ### Definition of done
 
-- Le template `App` reste simple (composition des enfants)
+- Le template `App` reste simple (composition)
 - Les responsabilites Leaflet sont isolees dans `MapViewComponent`
 - Les cards sont rendues via `PlaceCardComponent`
+- L'etat de feature est centralise de facon lisible
 
 ## Phase 4 - Carte + clusters
 
@@ -68,6 +77,7 @@ Construire la feature par couches, dans cet ordre:
 - Corriger les icones Leaflet par defaut (asset path ou icons custom)
 - Creer `MarkerClusterGroup`
 - Generer un marker par lieu et stocker dans `markersById`
+- Brancher clic marker -> store (selection)
 - Gerer `ngOnDestroy` / `map.remove()`
 
 ### Definition of done
@@ -82,7 +92,8 @@ Construire la feature par couches, dans cet ordre:
 
 - Implementer utilitaires de filtrage viewport
 - Ecouter `moveend`
-- Calculer `visibleFilteredPlaces` (sans filtre type au debut)
+- Stocker / synchroniser le viewport dans le store de feature
+- Calculer `visibleFilteredPlaces` avec filtre viewport (sans filtre type au debut si besoin)
 - Afficher compteur + liste de cards
 - Ajouter etat vide
 
@@ -95,7 +106,7 @@ Construire la feature par couches, dans cet ordre:
 
 ### Taches
 
-- Ajouter UI de filtres (chips Tailwind)
+- Finaliser UI de filtres (chips Tailwind)
 - Gerer `selectedTypes` (multi-selection)
 - Recalculer `visibleFilteredPlaces` a chaque toggle
 - Afficher etat visuel actif des filtres
@@ -109,7 +120,7 @@ Construire la feature par couches, dans cet ordre:
 
 ### Taches
 
-- Hover card => `hoveredPlaceId` + refresh style marker
+- Hover card => `hoveredPlace` + refresh style marker
 - Mouseout => reset hover
 - Click card => zoom/centrage + selection
 - Click marker => selection + sync panel
@@ -125,7 +136,7 @@ Construire la feature par couches, dans cet ordre:
 ### Taches
 
 - Tester utilitaires de filtrage/sort
-- Tester comportements de selection/hover (logique pure)
+- Tester comportements de selection/hover (logique pure/store)
 - Nettoyer CSS marker custom / etats
 - Recette manuelle complete
 
@@ -134,11 +145,12 @@ Construire la feature par couches, dans cet ordre:
 - Tests unitaires passent
 - Aucun comportement bloquant dans la recette
 
-## Ordre de commits recommande
+## Ordre de commits recommande (mis a jour)
 
 - `chore: setup leaflet markercluster styles`
 - `feat: add rennes cultural places mock dataset`
 - `feat: split ui into map panel and place-card components`
+- `refactor: move culture map page state to service`
 - `feat: render map with clustered markers`
 - `feat: sync right panel with viewport`
 - `feat: add type filters`
