@@ -10,15 +10,11 @@ export class CultureMapStateService {
   public readonly availableTypes = Object.values(CulturalPlaceType) as readonly CulturalPlaceType[];
 
   private readonly selectedTypesState = signal<ReadonlySet<CulturalPlaceType>>(new Set());
-  private readonly selectedPlaceIdState = signal<string | null>(null);
-  private readonly hoveredPlaceIdState = signal<string | null>(null);
-  private readonly placesById = computed(
-    () => new Map(this.allPlaces.map((place) => [place.id, place] as const)),
-  );
+  private readonly selectedPlaceState = signal<CulturalPlace | null>(null);
+  private readonly hoveredPlaceState = signal<CulturalPlace | null>(null);
 
-  public readonly selectedTypes = computed(() => [...this.selectedTypesState()]);
-  public readonly selectedPlaceId = this.selectedPlaceIdState.asReadonly();
-  public readonly hoveredPlaceId = this.hoveredPlaceIdState.asReadonly();
+  public readonly selectedPlace = this.selectedPlaceState.asReadonly();
+  public readonly hoveredPlace = this.hoveredPlaceState.asReadonly();
 
   public readonly visibleFilteredPlaces = computed(() => {
     const activeTypes = this.selectedTypesState();
@@ -33,24 +29,13 @@ export class CultureMapStateService {
     return this.selectedTypesState().has(type);
   }
 
-  isPlaceSelected(placeId: string): boolean {
-    return this.selectedPlaceIdState() === placeId;
+  isPlaceSelected(place: CulturalPlace): boolean {
+    return this.selectedPlaceState()?.id === place.id;
   }
 
-  isPlaceHovered(placeId: string): boolean {
-    return this.hoveredPlaceIdState() === placeId;
+  isPlaceHovered(place: CulturalPlace): boolean {
+    return this.hoveredPlaceState()?.id === place.id;
   }
-
-  getPlaceById(placeId: string | null): CulturalPlace | null {
-    if (!placeId) {
-      return null;
-    }
-
-    return this.placesById().get(placeId) ?? null;
-  }
-
-  public readonly selectedPlace = computed(() => this.getPlaceById(this.selectedPlaceIdState()));
-  public readonly hoveredPlace = computed(() => this.getPlaceById(this.hoveredPlaceIdState()));
 
   toggleType(type: CulturalPlaceType): void {
     this.selectedTypesState.update((current) => {
@@ -65,11 +50,11 @@ export class CultureMapStateService {
     });
   }
 
-  setHoveredPlace(placeId: string | null): void {
-    this.hoveredPlaceIdState.set(placeId);
+  setHoveredPlace(place: CulturalPlace | null): void {
+    this.hoveredPlaceState.set(place);
   }
 
-  toggleSelectedPlace(placeId: string): void {
-    this.selectedPlaceIdState.update((current) => (current === placeId ? null : placeId));
+  toggleSelectedPlace(place: CulturalPlace): void {
+    this.selectedPlaceState.update((current) => (current?.id === place.id ? null : place));
   }
 }

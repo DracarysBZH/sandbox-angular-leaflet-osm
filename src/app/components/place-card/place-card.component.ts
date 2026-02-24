@@ -13,17 +13,15 @@ import { CultureMapStateService } from '../../services/culture-map-state.service
   },
 })
 export class PlaceCardComponent {
-  private readonly cultureMapStateService = inject(CultureMapStateService);
-
   public readonly place = input.required<CulturalPlace>();
 
-  protected readonly isSelected = computed(() =>
-    this.cultureMapStateService.isPlaceSelected(this.place().id),
-  );
-  protected readonly isHovered = computed(() => this.cultureMapStateService.isPlaceHovered(this.place().id));
+  protected readonly isSelected = computed(() => this.cultureMapStateService.isPlaceSelected(this.place()));
+  protected readonly isHovered = computed(() => this.cultureMapStateService.isPlaceHovered(this.place()));
+
+  private readonly cultureMapStateService = inject(CultureMapStateService);
 
   protected onMouseEnter(): void {
-    this.cultureMapStateService.setHoveredPlace(this.place().id);
+    this.cultureMapStateService.setHoveredPlace(this.place());
   }
 
   protected onMouseLeave(): void {
@@ -31,6 +29,6 @@ export class PlaceCardComponent {
   }
 
   protected onSelect(): void {
-    this.cultureMapStateService.toggleSelectedPlace(this.place().id);
+    this.cultureMapStateService.toggleSelectedPlace(this.place());
   }
 }
