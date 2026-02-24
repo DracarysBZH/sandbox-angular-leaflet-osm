@@ -31,20 +31,19 @@
 }
 
 :host ::ng-deep .culture-place-marker__icon {
-  display: inline-flex;
+  display: inline-block;
   width: 16px;
   height: 16px;
   color: rgb(255 255 255);
-}
-
-:host ::ng-deep .culture-place-marker__icon svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  background: currentColor;
+  mask-image: var(--marker-icon-mask);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-image: var(--marker-icon-mask);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
 }
 
 :host ::ng-deep .culture-place-marker--museum .culture-place-marker__dot {

@@ -112,6 +112,7 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
 
   private createPlaceMarkerIcon(place: CulturalPlace): L.DivIcon {
     const visual = PLACE_TYPE_MARKER_VISUALS[place.type];
+    const iconMaskUrl = `url('${visual.iconPath}')`;
 
     return L.divIcon({
       className: `culture-place-marker culture-place-marker--${place.type}`,
@@ -120,7 +121,10 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
           class="culture-place-marker__dot"
           aria-hidden="true"
         >
-          <span class="culture-place-marker__icon">${visual.iconSvg}</span>
+          <span
+            class="culture-place-marker__icon"
+            style="--marker-icon-mask: ${iconMaskUrl};"
+          ></span>
         </span>
       `,
       iconSize: [MARKER_SIZE, MARKER_SIZE],
