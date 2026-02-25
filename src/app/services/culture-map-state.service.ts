@@ -22,6 +22,7 @@ export class CultureMapStateService {
 
   public readonly selectedPlace = this.selectedPlaceState.asReadonly();
   public readonly hoveredPlace = this.hoveredPlaceState.asReadonly();
+  public readonly selectedTypes = this.selectedTypesState.asReadonly();
 
   public readonly visibleFilteredPlaces = computed(() => {
     const typeFilteredPlaces = filterPlacesByTypes(this.allPlaces, this.selectedTypesState());

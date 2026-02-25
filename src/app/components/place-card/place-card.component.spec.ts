@@ -4,6 +4,7 @@ import { By } from '@angular/platform-browser';
 import { PlaceCardComponent } from './place-card.component';
 import { CulturalPlaceType, type CulturalPlace } from '../../models/cultural-place.model';
 import { CultureMapStateService } from '../../services/culture-map-state.service';
+import { PLACE_TYPE_MARKER_VISUALS } from '../../constants/place-type-marker-visuals.constant';
 
 describe('PlaceCardComponent', () => {
   let fixture: ComponentFixture<PlaceCardComponent>;
@@ -52,7 +53,7 @@ describe('PlaceCardComponent', () => {
     expect(button.textContent).toContain(place.name);
     expect(button.textContent).toContain(place.address);
     expect(button.textContent).toContain(place.shortDescription);
-    expect(button.textContent).toContain(place.type);
+    expect(button.textContent).toContain(PLACE_TYPE_MARKER_VISUALS[place.type].label);
   });
 
   it('should reflect mockSelected state in aria and data attributes', () => {
