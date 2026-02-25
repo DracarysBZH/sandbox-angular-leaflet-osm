@@ -15,7 +15,7 @@ import { CulturalPlace } from '../../models/cultural-place.model';
 import { CultureMapStateService } from '../../services/culture-map-state.service';
 
 const RENNES_CENTER: L.LatLngExpression = [48.117266, -1.677793];
-const RENNES_INITIAL_ZOOM = 13;
+const RENNES_INITIAL_ZOOM = 12;
 const MARKER_SIZE = 30;
 
 @Component({
