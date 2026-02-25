@@ -5,6 +5,15 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ci-main-pages
+  cancel-in-progress: true
+
 jobs:
   test-and-build:
     name: '🧪 Test + 🏗️ Build'
@@ -29,5 +38,26 @@ jobs:
           CI: 'true'
         run: npm test -- --watch=false
 
-      - name: '🏗️ Build app'
-        run: npm run build
+      - name: '⚙️ Setup Pages'
+        uses: actions/configure-pages@v5
+
+      - name: '🌍 Build app for Pages'
+        run: npm run build:pages
+
+      - name: '📤 Upload Pages artifact'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/sandbox-carto/browser
+
+  deploy-pages:
+    name: '🚀 Deploy GitHub Pages'
+    runs-on: ubuntu-latest
+    needs: test-and-build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: '🚀 Deploy'
+        id: deployment
+        uses: actions/deploy-pages@v4

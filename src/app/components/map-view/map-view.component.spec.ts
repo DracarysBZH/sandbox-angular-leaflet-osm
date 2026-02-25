@@ -256,6 +256,6 @@ describe('MapViewComponent', () => {
 
     expect(leafletMocks.divIcon).toHaveBeenCalled();
     expect(icon.className).toContain(`culture-place-marker--${place.type}`);
-    expect(icon.html).toContain('/icons/map-markers/museum.svg');
+    expect(icon.html).toContain('icons/map-markers/museum.svg');
   });
 });
