@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import type * as Leaflet from 'leaflet';
 import { MapViewComponent } from './map-view.component';
+import { LEAFLET_CLUSTER_LOADER } from './leaflet-cluster-loader';
 import { CultureMapStateService } from '../../services/culture-map-state.service';
 import { CulturalPlaceType, type CulturalPlace } from '../../models/cultural-place.model';
 
@@ -49,7 +51,10 @@ const leafletMocks = vi.hoisted(() => {
 });
 
 vi.mock('leaflet', () => leafletMocks);
-vi.mock('leaflet.markercluster', () => ({}));
+
+const loaderSpy = vi.fn(
+  async () => leafletMocks as unknown as typeof Leaflet,
+);
 
 describe('MapViewComponent', () => {
   let fixture: ComponentFixture<MapViewComponent>;
@@ -91,7 +96,10 @@ describe('MapViewComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [MapViewComponent],
-      providers: [{ provide: CultureMapStateService, useValue: serviceMock }],
+      providers: [
+        { provide: CultureMapStateService, useValue: serviceMock },
+        { provide: LEAFLET_CLUSTER_LOADER, useValue: loaderSpy },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(MapViewComponent);
@@ -103,10 +111,11 @@ describe('MapViewComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should initialize map and markers after view init', () => {
-    component.ngAfterViewInit();
+  it('should initialize map and markers after view init', async () => {
+    await component.ngAfterViewInit();
 
     expect(leafletMocks.map).toHaveBeenCalled();
+    expect(loaderSpy).toHaveBeenCalled();
     expect(leafletMocks.tileLayer).toHaveBeenCalled();
     expect(leafletMocks.markerClusterGroup).toHaveBeenCalled();
     expect(leafletMocks.marker).toHaveBeenCalledWith([place.lat, place.lng], expect.any(Object));
@@ -120,8 +129,8 @@ describe('MapViewComponent', () => {
     });
   });
 
-  it('should sync viewport when the map move ends', () => {
-    component.ngAfterViewInit();
+  it('should sync viewport when the map move ends', async () => {
+    await component.ngAfterViewInit();
 
     const moveEndHandler = leafletMocks.mockMap.on.mock.calls.find(
       ([eventName]) => eventName === 'moveend',
@@ -141,8 +150,8 @@ describe('MapViewComponent', () => {
     });
   });
 
-  it('should toggle place selection when marker is clicked', () => {
-    component.ngAfterViewInit();
+  it('should toggle place selection when marker is clicked', async () => {
+    await component.ngAfterViewInit();
 
     const clickHandler = leafletMocks.mockMarker.on.mock.calls.find(
       ([eventName]) => eventName === 'click',
@@ -155,8 +164,8 @@ describe('MapViewComponent', () => {
     expect(serviceMock.toggleSelectedPlace).toHaveBeenCalledWith(place);
   });
 
-  it('should set hovered place when marker hover events fire', () => {
-    component.ngAfterViewInit();
+  it('should set hovered place when marker hover events fire', async () => {
+    await component.ngAfterViewInit();
 
     const mouseOverHandler = leafletMocks.mockMarker.on.mock.calls.find(
       ([eventName]) => eventName === 'mouseover',
@@ -175,8 +184,8 @@ describe('MapViewComponent', () => {
     expect(serviceMock.setHoveredPlace).toHaveBeenNthCalledWith(2, null);
   });
 
-  it('should focus the map when a place becomes selected from the panel', () => {
-    component.ngAfterViewInit();
+  it('should focus the map when a place becomes selected from the panel', async () => {
+    await component.ngAfterViewInit();
     leafletMocks.mockClusterGroup.zoomToShowLayer.mockClear();
     leafletMocks.mockMap.flyTo.mockClear();
 
@@ -193,8 +202,8 @@ describe('MapViewComponent', () => {
     });
   });
 
-  it('should not zoom out when the current zoom is already higher than focus zoom', () => {
-    component.ngAfterViewInit();
+  it('should not zoom out when the current zoom is already higher than focus zoom', async () => {
+    await component.ngAfterViewInit();
     leafletMocks.mockMap.getZoom.mockReturnValue(16);
     leafletMocks.mockMap.flyTo.mockClear();
     leafletMocks.mockMap.panTo.mockClear();
@@ -208,8 +217,8 @@ describe('MapViewComponent', () => {
     });
   });
 
-  it('should refresh marker icon when hover or selection changes', () => {
-    component.ngAfterViewInit();
+  it('should refresh marker icon when hover or selection changes', async () => {
+    await component.ngAfterViewInit();
     leafletMocks.mockMarker.setIcon.mockClear();
 
     hoveredPlace.set(place);
@@ -224,8 +233,8 @@ describe('MapViewComponent', () => {
     expect(leafletMocks.mockMarker.setIcon).toHaveBeenCalled();
   });
 
-  it('should refresh visible markers when type filters change', () => {
-    component.ngAfterViewInit();
+  it('should refresh visible markers when type filters change', async () => {
+    await component.ngAfterViewInit();
     leafletMocks.mockClusterGroup.clearLayers.mockClear();
     leafletMocks.mockClusterGroup.addLayer.mockClear();
 
@@ -242,8 +251,8 @@ describe('MapViewComponent', () => {
     expect(leafletMocks.mockClusterGroup.addLayer).toHaveBeenCalledWith(leafletMocks.mockMarker);
   });
 
-  it('should clean up map resources on destroy', () => {
-    component.ngAfterViewInit();
+  it('should clean up map resources on destroy', async () => {
+    await component.ngAfterViewInit();
     component.ngOnDestroy();
 
     expect(leafletMocks.mockMap.remove).toHaveBeenCalled();

@@ -9,7 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import * as L from 'leaflet';
-import 'leaflet.markercluster';
+import { LEAFLET_CLUSTER_LOADER } from './leaflet-cluster-loader';
 import { PLACE_TYPE_MARKER_VISUALS } from '../../constants/place-type-marker-visuals.constant';
 import { CulturalPlace } from '../../models/cultural-place.model';
 import { CultureMapStateService } from '../../services/culture-map-state.service';
@@ -31,10 +31,13 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
   protected readonly cultureMapStateService = inject(CultureMapStateService);
 
   private readonly mapContainerRef = viewChild.required<ElementRef<HTMLDivElement>>('mapContainer');
+  private readonly loadMarkerCluster = inject(LEAFLET_CLUSTER_LOADER);
+  private leafletApi: typeof L = L;
 
   private map: L.Map | null = null;
   private markerClusterGroup: L.MarkerClusterGroup | null = null;
   private readonly markersById = new Map<string, L.Marker>();
+  private highlightedClusterElement: HTMLElement | null = null;
 
   constructor() {
     effect(() => {
@@ -43,6 +46,7 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
       void hoveredPlace;
       void selectedPlace;
       this.refreshMarkerStyles();
+      this.refreshClusterHighlight();
     });
 
     effect(() => {
@@ -62,13 +66,15 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  ngAfterViewInit(): void {
+  async ngAfterViewInit(): Promise<void> {
+    this.leafletApi = await this.loadMarkerCluster();
     this.initializeMap();
     this.initializeMarkers();
     this.refreshVisibleMarkers();
   }
 
   ngOnDestroy(): void {
+    this.clearClusterHighlight();
     this.markersById.clear();
     this.markerClusterGroup = null;
     this.map?.remove();
@@ -78,13 +84,13 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
   private initializeMap(): void {
     const mapElement = this.mapContainerRef().nativeElement;
 
-    this.map = L.map(mapElement, {
+    this.map = this.leafletApi.map(mapElement, {
       center: RENNES_CENTER,
       zoom: RENNES_INITIAL_ZOOM,
       zoomControl: true,
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    this.leafletApi.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 20,
       minZoom: 10,
       subdomains: 'abcd',
@@ -93,7 +99,7 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
         '&copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>',
     }).addTo(this.map);
 
-    this.markerClusterGroup = L.markerClusterGroup({
+    this.markerClusterGroup = this.leafletApi.markerClusterGroup({
       showCoverageOnHover: false,
       spiderfyOnMaxZoom: true,
     });
@@ -112,7 +118,7 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
 
     for (const place of this.cultureMapStateService.allPlaces) {
       const markerVisual = PLACE_TYPE_MARKER_VISUALS[place.type];
-      const marker = L.marker([place.lat, place.lng], {
+      const marker = this.leafletApi.marker([place.lat, place.lng], {
         alt: place.name,
         keyboard: true,
         icon: this.createPlaceMarkerIcon(place),
@@ -159,7 +165,7 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
         ? 'culture-place-marker--hovered'
         : 'culture-place-marker--idle';
 
-    return L.divIcon({
+    return this.leafletApi.divIcon({
       className: `culture-place-marker culture-place-marker--${place.type} ${interactionClass}`,
       html: `
         <span
@@ -212,6 +218,8 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
 
       this.markerClusterGroup.addLayer(marker);
     }
+
+    this.refreshClusterHighlight();
   }
 
   private focusSelectedPlace(place: CulturalPlace): void {
@@ -267,5 +275,63 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
     };
 
     this.cultureMapStateService.setViewportBounds(viewportBounds);
+  }
+
+  private refreshClusterHighlight(): void {
+    const clusterGroup = this.markerClusterGroup;
+    if (!clusterGroup) {
+      this.clearClusterHighlight();
+      return;
+    }
+
+    const activePlace =
+      this.cultureMapStateService.hoveredPlace() ?? this.cultureMapStateService.selectedPlace();
+    if (!activePlace) {
+      this.clearClusterHighlight();
+      return;
+    }
+
+    const marker = this.markersById.get(activePlace.id);
+    if (!marker) {
+      this.clearClusterHighlight();
+      return;
+    }
+
+    const getVisibleParent = (
+      clusterGroup as unknown as { getVisibleParent?: (layer: L.Layer) => unknown }
+    ).getVisibleParent;
+
+    if (typeof getVisibleParent !== 'function') {
+      this.clearClusterHighlight();
+      return;
+    }
+
+    const visibleParent = getVisibleParent.call(clusterGroup, marker);
+    if (visibleParent === marker || !visibleParent) {
+      this.clearClusterHighlight();
+      return;
+    }
+
+    const clusterElement = (
+      visibleParent as { getElement?: () => HTMLElement | null }
+    ).getElement?.();
+
+    if (!clusterElement) {
+      this.clearClusterHighlight();
+      return;
+    }
+
+    if (this.highlightedClusterElement === clusterElement) {
+      return;
+    }
+
+    this.clearClusterHighlight();
+    clusterElement.classList.add('marker-cluster--linked-highlight');
+    this.highlightedClusterElement = clusterElement;
+  }
+
+  private clearClusterHighlight(): void {
+    this.highlightedClusterElement?.classList.remove('marker-cluster--linked-highlight');
+    this.highlightedClusterElement = null;
   }
 }
