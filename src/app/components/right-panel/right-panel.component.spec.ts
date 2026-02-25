@@ -36,16 +36,19 @@ describe('RightPanelComponent', () => {
   };
 
   const visiblePlaces = signal<CulturalPlace[]>([placeA, placeB]);
+  const selectedTypes = signal<ReadonlySet<CulturalPlaceType>>(new Set());
 
   const serviceMock: Partial<CultureMapStateService> = {
     availableTypes: [CulturalPlaceType.Museum, CulturalPlaceType.Gallery] as const,
     visibleFilteredPlaces: visiblePlaces,
+    selectedTypes,
     isTypeSelected: vi.fn(() => false),
     toggleType: vi.fn(),
   };
 
   beforeEach(async () => {
     visiblePlaces.set([placeA, placeB]);
+    selectedTypes.set(new Set());
     vi.clearAllMocks();
 
     await TestBed.configureTestingModule({
@@ -78,6 +81,18 @@ describe('RightPanelComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Aucun lieu visible pour le moment.');
+  });
+
+  it('should render selected filter summary and active state', () => {
+    selectedTypes.set(new Set([CulturalPlaceType.Museum]));
+    const isTypeSelectedMock = serviceMock.isTypeSelected as ReturnType<typeof vi.fn>;
+    isTypeSelectedMock.mockImplementation((type: CulturalPlaceType) => type === CulturalPlaceType.Museum);
+    fixture.detectChanges();
+
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector('button');
+
+    expect(fixture.nativeElement.textContent).toContain('1 type sélectionné');
+    expect(button.getAttribute('aria-pressed')).toBe('true');
   });
 
   it('should toggle a type when filter button is clicked', () => {
