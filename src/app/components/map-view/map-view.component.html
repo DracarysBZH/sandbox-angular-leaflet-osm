@@ -5,7 +5,7 @@
   <div class="flex items-start justify-between gap-3">
     <div>
       <h2 id="map-view-title" class="text-sm font-semibold tracking-wide text-white uppercase">
-        Carte (phase 4)
+        Carte
       </h2>
       <p class="mt-1 text-sm text-slate-300">
         Carte Leaflet + clusters sur les lieux culturels de Rennes.
@@ -19,14 +19,4 @@
   >
     <div #mapContainer class="map-surface h-full w-full" aria-hidden="true"></div>
   </div>
-
-  <p class="mt-3 text-xs text-slate-300" aria-live="polite">
-    {{ cultureMapStateService.allPlaces.length }} points chargés.
-    @if (selectedPlaceName(); as selectedPlaceName) {
-      <span class="text-emerald-200"> Sélection: {{ selectedPlaceName }}.</span>
-    }
-    @if (hoveredPlaceName(); as hoveredPlaceName) {
-      <span class="text-sky-200"> Survol: {{ hoveredPlaceName }}.</span>
-    }
-  </p>
 </section>

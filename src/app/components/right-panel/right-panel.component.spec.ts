@@ -37,11 +37,13 @@ describe('RightPanelComponent', () => {
 
   const visiblePlaces = signal<CulturalPlace[]>([placeA, placeB]);
   const selectedTypes = signal<ReadonlySet<CulturalPlaceType>>(new Set());
+  const selectedPlace = signal<CulturalPlace | null>(null);
 
   const serviceMock: Partial<CultureMapStateService> = {
     availableTypes: [CulturalPlaceType.Museum, CulturalPlaceType.Gallery] as const,
     visibleFilteredPlaces: visiblePlaces,
     selectedTypes,
+    selectedPlace,
     isTypeSelected: vi.fn(() => false),
     toggleType: vi.fn(),
   };
@@ -49,6 +51,7 @@ describe('RightPanelComponent', () => {
   beforeEach(async () => {
     visiblePlaces.set([placeA, placeB]);
     selectedTypes.set(new Set());
+    selectedPlace.set(null);
     vi.clearAllMocks();
 
     await TestBed.configureTestingModule({
@@ -101,5 +104,21 @@ describe('RightPanelComponent', () => {
     button.click();
 
     expect(serviceMock.toggleType).toHaveBeenCalledWith(CulturalPlaceType.Museum);
+  });
+
+  it('should scroll selected place card into view when selected from the map', async () => {
+    const secondItem = fixture.nativeElement.querySelector('[data-place-card-id="b"]') as HTMLElement;
+    const scrollSpy = vi.fn();
+    secondItem.scrollIntoView = scrollSpy;
+
+    selectedPlace.set(placeB);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(scrollSpy).toHaveBeenCalledWith({
+      block: 'nearest',
+      inline: 'nearest',
+      behavior: 'smooth',
+    });
   });
 });

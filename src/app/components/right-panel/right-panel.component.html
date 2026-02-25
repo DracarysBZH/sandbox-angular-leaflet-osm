@@ -9,7 +9,6 @@
       </h2>
       <p class="mt-1 text-sm text-slate-300">{{ visibleCountLabel() }}</p>
     </div>
-    <span class="rounded-full bg-emerald-300/10 px-2 py-1 text-xs text-emerald-100">Phase 6</span>
   </div>
 
   <div class="mt-4">
@@ -42,9 +41,13 @@
         <p class="text-sm text-slate-300">{{ emptyStateLabel() }}</p>
       </div>
     } @else {
-      <ul class="grid h-full content-start gap-3 overflow-auto pr-1" aria-label="Liste des lieux culturels">
+      <ul
+        #placesList
+        class="grid h-full content-start gap-3 overflow-auto pr-1"
+        aria-label="Liste des lieux culturels"
+      >
         @for (place of cultureMapStateService.visibleFilteredPlaces(); track place.id) {
-          <li>
+          <li [attr.data-place-card-id]="place.id">
             <app-place-card [place]="place" />
           </li>
         }
