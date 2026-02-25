@@ -32,6 +32,7 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
 
   private readonly mapContainerRef = viewChild.required<ElementRef<HTMLDivElement>>('mapContainer');
   private readonly loadMarkerCluster = inject(LEAFLET_CLUSTER_LOADER);
+  private leafletApi: typeof L = L;
 
   private map: L.Map | null = null;
   private markerClusterGroup: L.MarkerClusterGroup | null = null;
@@ -64,7 +65,7 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
   }
 
   async ngAfterViewInit(): Promise<void> {
-    await this.loadMarkerCluster();
+    this.leafletApi = await this.loadMarkerCluster();
     this.initializeMap();
     this.initializeMarkers();
     this.refreshVisibleMarkers();
@@ -80,13 +81,13 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
   private initializeMap(): void {
     const mapElement = this.mapContainerRef().nativeElement;
 
-    this.map = L.map(mapElement, {
+    this.map = this.leafletApi.map(mapElement, {
       center: RENNES_CENTER,
       zoom: RENNES_INITIAL_ZOOM,
       zoomControl: true,
     });
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+    this.leafletApi.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       maxZoom: 20,
       minZoom: 10,
       subdomains: 'abcd',
@@ -95,7 +96,7 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
         '&copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>',
     }).addTo(this.map);
 
-    this.markerClusterGroup = L.markerClusterGroup({
+    this.markerClusterGroup = this.leafletApi.markerClusterGroup({
       showCoverageOnHover: false,
       spiderfyOnMaxZoom: true,
     });
@@ -114,7 +115,7 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
 
     for (const place of this.cultureMapStateService.allPlaces) {
       const markerVisual = PLACE_TYPE_MARKER_VISUALS[place.type];
-      const marker = L.marker([place.lat, place.lng], {
+      const marker = this.leafletApi.marker([place.lat, place.lng], {
         alt: place.name,
         keyboard: true,
         icon: this.createPlaceMarkerIcon(place),
@@ -161,7 +162,7 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
         ? 'culture-place-marker--hovered'
         : 'culture-place-marker--idle';
 
-    return L.divIcon({
+    return this.leafletApi.divIcon({
       className: `culture-place-marker culture-place-marker--${place.type} ${interactionClass}`,
       html: `
         <span

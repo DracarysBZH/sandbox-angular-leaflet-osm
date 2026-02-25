@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
+import type * as Leaflet from 'leaflet';
 import { MapViewComponent } from './map-view.component';
 import { LEAFLET_CLUSTER_LOADER } from './leaflet-cluster-loader';
 import { CultureMapStateService } from '../../services/culture-map-state.service';
@@ -51,7 +52,9 @@ const leafletMocks = vi.hoisted(() => {
 
 vi.mock('leaflet', () => leafletMocks);
 
-const loaderSpy = vi.fn(async () => undefined);
+const loaderSpy = vi.fn(
+  async () => leafletMocks as unknown as typeof Leaflet,
+);
 
 describe('MapViewComponent', () => {
   let fixture: ComponentFixture<MapViewComponent>;
