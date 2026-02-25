@@ -5,8 +5,17 @@ import { CultureMapStateService } from '../../services/culture-map-state.service
 import { CulturalPlaceType, type CulturalPlace } from '../../models/cultural-place.model';
 
 const leafletMocks = vi.hoisted(() => {
+  const mockBounds = {
+    getNorth: vi.fn(() => 48.2),
+    getSouth: vi.fn(() => 48.0),
+    getEast: vi.fn(() => -1.5),
+    getWest: vi.fn(() => -1.8),
+  };
+
   const mockMap = {
     addLayer: vi.fn(),
+    on: vi.fn(),
+    getBounds: vi.fn(() => mockBounds),
     remove: vi.fn(),
   };
 
@@ -23,6 +32,7 @@ const leafletMocks = vi.hoisted(() => {
     mockMap,
     mockClusterGroup,
     mockMarker,
+    mockBounds,
     map: vi.fn(() => mockMap),
     tileLayer: vi.fn(() => ({ addTo: vi.fn() })),
     markerClusterGroup: vi.fn(() => mockClusterGroup),
@@ -56,6 +66,7 @@ describe('MapViewComponent', () => {
     allPlaces: [place] as readonly CulturalPlace[],
     selectedPlace,
     hoveredPlace,
+    setViewportBounds: vi.fn(),
     toggleSelectedPlace: vi.fn(),
   };
 
@@ -97,6 +108,32 @@ describe('MapViewComponent', () => {
     expect(leafletMocks.markerClusterGroup).toHaveBeenCalled();
     expect(leafletMocks.marker).toHaveBeenCalledWith([place.lat, place.lng], expect.any(Object));
     expect(leafletMocks.mockClusterGroup.addLayer).toHaveBeenCalledWith(leafletMocks.mockMarker);
+    expect(serviceMock.setViewportBounds).toHaveBeenCalledWith({
+      north: 48.2,
+      south: 48.0,
+      east: -1.5,
+      west: -1.8,
+    });
+  });
+
+  it('should sync viewport when the map move ends', () => {
+    component.ngAfterViewInit();
+
+    const moveEndHandler = leafletMocks.mockMap.on.mock.calls.find(
+      ([eventName]) => eventName === 'moveend',
+    )?.[1] as (() => void) | undefined;
+
+    expect(moveEndHandler).toBeDefined();
+
+    vi.mocked(serviceMock.setViewportBounds).mockClear();
+    moveEndHandler?.();
+
+    expect(serviceMock.setViewportBounds).toHaveBeenCalledWith({
+      north: 48.2,
+      south: 48.0,
+      east: -1.5,
+      west: -1.8,
+    });
   });
 
   it('should toggle place selection when marker is clicked', () => {
