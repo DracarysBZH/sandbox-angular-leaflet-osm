@@ -55,12 +55,8 @@ export class CultureMapStateService {
     });
   }
 
-  setViewportBounds(bounds: ViewportBounds): void {
+  setViewportBounds(bounds: ViewportBounds | null): void {
     this.viewportBoundsState.set(bounds);
-  }
-
-  clearViewportBounds(): void {
-    this.viewportBoundsState.set(null);
   }
 
   setHoveredPlace(place: CulturalPlace | null): void {

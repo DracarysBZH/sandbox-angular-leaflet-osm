@@ -55,7 +55,7 @@ describe('CultureMapStateService', () => {
     expect(visiblePlaces.some((visiblePlace) => visiblePlace.id === place.id)).toBe(true);
     expect(visiblePlaces.length).toBeLessThan(service.allPlaces.length);
 
-    service.clearViewportBounds();
+    service.setViewportBounds(null);
 
     expect(service.visibleFilteredPlaces().length).toBe(service.allPlaces.length);
   });
