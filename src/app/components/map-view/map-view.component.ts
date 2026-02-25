@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import * as L from 'leaflet';
+import { LEAFLET_CLUSTER_LOADER } from './leaflet-cluster-loader';
 import { PLACE_TYPE_MARKER_VISUALS } from '../../constants/place-type-marker-visuals.constant';
 import { CulturalPlace } from '../../models/cultural-place.model';
 import { CultureMapStateService } from '../../services/culture-map-state.service';
@@ -18,12 +19,6 @@ const RENNES_CENTER: L.LatLngExpression = [48.117266, -1.677793];
 const RENNES_INITIAL_ZOOM = 12;
 const SELECTION_FOCUS_ZOOM = 14;
 const MARKER_SIZE = 30;
-
-type MarkerLayerGroup = L.LayerGroup & {
-  clearLayers(): MarkerLayerGroup;
-  addLayer(layer: L.Layer): MarkerLayerGroup;
-  zoomToShowLayer?: (layer: L.Layer, callback: () => void) => void;
-};
 
 @Component({
   selector: 'app-map-view',
@@ -36,9 +31,10 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
   protected readonly cultureMapStateService = inject(CultureMapStateService);
 
   private readonly mapContainerRef = viewChild.required<ElementRef<HTMLDivElement>>('mapContainer');
+  private readonly loadMarkerCluster = inject(LEAFLET_CLUSTER_LOADER);
 
   private map: L.Map | null = null;
-  private markerClusterGroup: MarkerLayerGroup | null = null;
+  private markerClusterGroup: L.MarkerClusterGroup | null = null;
   private readonly markersById = new Map<string, L.Marker>();
 
   constructor() {
@@ -67,15 +63,11 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  ngAfterViewInit(): void {
-    if (this.hasMarkerClusterFactory()) {
-      this.initializeMap();
-      this.initializeMarkers();
-      this.refreshVisibleMarkers();
-      return;
-    }
-
-    void this.initializeMapAfterLoadingPlugin();
+  async ngAfterViewInit(): Promise<void> {
+    await this.loadMarkerCluster();
+    this.initializeMap();
+    this.initializeMarkers();
+    this.refreshVisibleMarkers();
   }
 
   ngOnDestroy(): void {
@@ -103,7 +95,10 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
         '&copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener noreferrer">CARTO</a>',
     }).addTo(this.map);
 
-    this.markerClusterGroup = this.createMarkerLayerGroup();
+    this.markerClusterGroup = L.markerClusterGroup({
+      showCoverageOnHover: false,
+      spiderfyOnMaxZoom: true,
+    });
 
     this.map.addLayer(this.markerClusterGroup);
     this.syncViewportBounds();
@@ -153,53 +148,6 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
       this.markersById.set(place.id, marker);
       this.markerClusterGroup.addLayer(marker);
     }
-  }
-
-  private hasMarkerClusterFactory(): boolean {
-    return typeof (L as typeof L & { markerClusterGroup?: unknown }).markerClusterGroup === 'function';
-  }
-
-  private async initializeMapAfterLoadingPlugin(): Promise<void> {
-    await this.ensureMarkerClusterPluginLoaded();
-
-    this.initializeMap();
-    this.initializeMarkers();
-    this.refreshVisibleMarkers();
-  }
-
-  private async ensureMarkerClusterPluginLoaded(): Promise<void> {
-    if (this.hasMarkerClusterFactory()) {
-      return;
-    }
-
-    (globalThis as typeof globalThis & { L?: typeof L }).L = L;
-
-    try {
-      await import('leaflet.markercluster');
-    } catch (error) {
-      console.warn('[MapView] Failed to load leaflet.markercluster plugin.', error);
-    }
-  }
-
-  private createMarkerLayerGroup(): MarkerLayerGroup {
-    const markerClusterFactory = (
-      L as typeof L & {
-        markerClusterGroup?: (options?: L.MarkerClusterGroupOptions) => L.MarkerClusterGroup;
-      }
-    ).markerClusterGroup;
-
-    if (typeof markerClusterFactory === 'function') {
-      return markerClusterFactory({
-        showCoverageOnHover: false,
-        spiderfyOnMaxZoom: true,
-      }) as unknown as MarkerLayerGroup;
-    }
-
-    console.warn(
-      '[MapView] leaflet.markercluster unavailable at runtime, using LayerGroup fallback.',
-    );
-
-    return L.layerGroup() as MarkerLayerGroup;
   }
 
   private createPlaceMarkerIcon(place: CulturalPlace): L.DivIcon {
@@ -276,7 +224,7 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
     const marker = this.markersById.get(place.id);
     const clusterGroup = this.markerClusterGroup;
 
-    if (marker && clusterGroup?.zoomToShowLayer) {
+    if (marker && clusterGroup) {
       clusterGroup.zoomToShowLayer(marker, () => {
         this.centerOnPlace(place);
       });
