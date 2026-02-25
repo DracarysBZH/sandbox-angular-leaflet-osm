@@ -1,59 +1,92 @@
-# SandboxCarto
+# 🗺️ SANDBOX [ANGULAR - LEAFLET - OSM]
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.4.
+- [📌 Overview](#-overview)
+- [🧰 Prerequisites](#-prerequisites)
+- [🚀 Running Locally](#-running-locally)
+- [🧪 Running Tests](#-running-tests)
+- [📁 Project Structure](#-project-structure)
+- [🌍 GitHub Pages](#-github-pages)
+- [📝 Notes](#-notes)
 
-## Development server
+## 📌 Overview
 
-To start a local development server, run:
+This repository is a front-end sandbox to learn and practice:
 
-```bash
-ng serve
-```
+- Angular (standalone components + signals)
+- Leaflet + OpenStreetMap integration
+- Marker clustering with `leaflet.markercluster`
+- UI synchronization between map and side panel
+- Filtering and interaction patterns (hover, selection, focus)
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Current feature set includes:
 
-## Code scaffolding
+- Rennes cultural places mock dataset
+- Leaflet map with clustered custom markers
+- Right panel synced with map viewport
+- Type filters (multi-select)
+- Map <-> panel hover and selection sync
+- Selection focus without forced zoom-out
+- Auto-scroll to selected card in the right panel
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## 🧰 Prerequisites
 
-```bash
-ng generate component component-name
-```
+1. Node.js `20+` (recommended)
+2. npm `10+`
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 🚀 Running Locally
 
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+1. Install dependencies
 
 ```bash
-ng test
+npm install
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+2. Start the Angular dev server
 
 ```bash
-ng e2e
+npm run start
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+App URL:
 
-## Additional Resources
+- [http://localhost:4200](http://localhost:4200)
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## 🧪 Running Tests
+
+Run all unit tests:
+
+```bash
+npm run test -- --watch=false
+```
+
+Build production bundle:
+
+```bash
+npm run build
+```
+
+## 📁 Project Structure
+
+```text
+src/app/
+├── components/
+│   ├── map-view/                 # Leaflet map, markers, clusters, map interactions
+│   ├── place-card/               # Right panel place card
+│   └── right-panel/              # Filters + visible places list
+├── constants/
+│   └── place-type-marker-visuals.constant.ts
+├── data/
+│   └── rennes-cultural-places.mock.ts
+├── models/
+│   └── cultural-place.model.ts
+├── services/
+│   └── culture-map-state.service.ts  # Feature state (signals)
+└── utils/
+    └── place-filters.ts
+```
+
+## 📝 Notes
+
+- This repository is a sandbox for learning and experimentation.
+- It is not intended for production use.
+- The project currently uses a local mock dataset (Rennes cultural places).

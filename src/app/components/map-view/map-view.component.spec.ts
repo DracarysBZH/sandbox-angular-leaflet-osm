@@ -16,16 +16,23 @@ const leafletMocks = vi.hoisted(() => {
     addLayer: vi.fn(),
     on: vi.fn(),
     getBounds: vi.fn(() => mockBounds),
+    getZoom: vi.fn(() => 12),
+    flyTo: vi.fn(),
+    panTo: vi.fn(),
     remove: vi.fn(),
   };
 
   const mockClusterGroup = {
     addLayer: vi.fn(),
+    clearLayers: vi.fn(),
+    zoomToShowLayer: vi.fn((_layer, callback: () => void) => callback()),
   };
 
   const mockMarker = {
     bindTooltip: vi.fn().mockReturnThis(),
     on: vi.fn().mockReturnThis(),
+    setIcon: vi.fn().mockReturnThis(),
+    getLatLng: vi.fn(() => ({ lat: 48.11, lng: -1.68 })),
   };
 
   return {
@@ -62,18 +69,25 @@ describe('MapViewComponent', () => {
 
   const selectedPlace = signal<CulturalPlace | null>(null);
   const hoveredPlace = signal<CulturalPlace | null>(null);
+  const selectedTypes = signal<ReadonlySet<CulturalPlaceType>>(new Set());
   const serviceMock: Partial<CultureMapStateService> = {
     allPlaces: [place] as readonly CulturalPlace[],
     selectedPlace,
     hoveredPlace,
+    selectedTypes,
     setViewportBounds: vi.fn(),
+    setHoveredPlace: vi.fn(),
     toggleSelectedPlace: vi.fn(),
+    isPlaceSelected: vi.fn((candidate: CulturalPlace) => selectedPlace()?.id === candidate.id),
+    isPlaceHovered: vi.fn((candidate: CulturalPlace) => hoveredPlace()?.id === candidate.id),
   };
 
   beforeEach(async () => {
     selectedPlace.set(null);
     hoveredPlace.set(null);
+    selectedTypes.set(new Set());
     vi.clearAllMocks();
+    leafletMocks.mockMap.getZoom.mockReturnValue(12);
 
     await TestBed.configureTestingModule({
       imports: [MapViewComponent],
@@ -89,17 +103,6 @@ describe('MapViewComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should expose selected and hovered place names', () => {
-    expect((component as any).selectedPlaceName()).toBeNull();
-    expect((component as any).hoveredPlaceName()).toBeNull();
-
-    selectedPlace.set(place);
-    hoveredPlace.set(place);
-
-    expect((component as any).selectedPlaceName()).toBe(place.name);
-    expect((component as any).hoveredPlaceName()).toBe(place.name);
-  });
-
   it('should initialize map and markers after view init', () => {
     component.ngAfterViewInit();
 
@@ -108,6 +111,7 @@ describe('MapViewComponent', () => {
     expect(leafletMocks.markerClusterGroup).toHaveBeenCalled();
     expect(leafletMocks.marker).toHaveBeenCalledWith([place.lat, place.lng], expect.any(Object));
     expect(leafletMocks.mockClusterGroup.addLayer).toHaveBeenCalledWith(leafletMocks.mockMarker);
+    expect(leafletMocks.mockClusterGroup.clearLayers).toHaveBeenCalled();
     expect(serviceMock.setViewportBounds).toHaveBeenCalledWith({
       north: 48.2,
       south: 48.0,
@@ -149,6 +153,93 @@ describe('MapViewComponent', () => {
     clickHandler?.();
 
     expect(serviceMock.toggleSelectedPlace).toHaveBeenCalledWith(place);
+  });
+
+  it('should set hovered place when marker hover events fire', () => {
+    component.ngAfterViewInit();
+
+    const mouseOverHandler = leafletMocks.mockMarker.on.mock.calls.find(
+      ([eventName]) => eventName === 'mouseover',
+    )?.[1] as (() => void) | undefined;
+    const mouseOutHandler = leafletMocks.mockMarker.on.mock.calls.find(
+      ([eventName]) => eventName === 'mouseout',
+    )?.[1] as (() => void) | undefined;
+
+    expect(mouseOverHandler).toBeDefined();
+    expect(mouseOutHandler).toBeDefined();
+
+    mouseOverHandler?.();
+    mouseOutHandler?.();
+
+    expect(serviceMock.setHoveredPlace).toHaveBeenNthCalledWith(1, place);
+    expect(serviceMock.setHoveredPlace).toHaveBeenNthCalledWith(2, null);
+  });
+
+  it('should focus the map when a place becomes selected from the panel', () => {
+    component.ngAfterViewInit();
+    leafletMocks.mockClusterGroup.zoomToShowLayer.mockClear();
+    leafletMocks.mockMap.flyTo.mockClear();
+
+    selectedPlace.set(place);
+    fixture.detectChanges();
+
+    expect(leafletMocks.mockClusterGroup.zoomToShowLayer).toHaveBeenCalledWith(
+      leafletMocks.mockMarker,
+      expect.any(Function),
+    );
+    expect(leafletMocks.mockMap.flyTo).toHaveBeenCalledWith([place.lat, place.lng], 14, {
+      animate: true,
+      duration: 0.45,
+    });
+  });
+
+  it('should not zoom out when the current zoom is already higher than focus zoom', () => {
+    component.ngAfterViewInit();
+    leafletMocks.mockMap.getZoom.mockReturnValue(16);
+    leafletMocks.mockMap.flyTo.mockClear();
+    leafletMocks.mockMap.panTo.mockClear();
+
+    selectedPlace.set(place);
+    fixture.detectChanges();
+
+    expect(leafletMocks.mockMap.flyTo).not.toHaveBeenCalled();
+    expect(leafletMocks.mockMap.panTo).toHaveBeenCalledWith([place.lat, place.lng], {
+      animate: true,
+    });
+  });
+
+  it('should refresh marker icon when hover or selection changes', () => {
+    component.ngAfterViewInit();
+    leafletMocks.mockMarker.setIcon.mockClear();
+
+    hoveredPlace.set(place);
+    fixture.detectChanges();
+
+    expect(leafletMocks.mockMarker.setIcon).toHaveBeenCalled();
+
+    leafletMocks.mockMarker.setIcon.mockClear();
+    selectedPlace.set(place);
+    fixture.detectChanges();
+
+    expect(leafletMocks.mockMarker.setIcon).toHaveBeenCalled();
+  });
+
+  it('should refresh visible markers when type filters change', () => {
+    component.ngAfterViewInit();
+    leafletMocks.mockClusterGroup.clearLayers.mockClear();
+    leafletMocks.mockClusterGroup.addLayer.mockClear();
+
+    selectedTypes.set(new Set([CulturalPlaceType.Gallery]));
+    fixture.detectChanges();
+
+    expect(leafletMocks.mockClusterGroup.clearLayers).toHaveBeenCalled();
+    expect(leafletMocks.mockClusterGroup.addLayer).not.toHaveBeenCalled();
+
+    selectedTypes.set(new Set([CulturalPlaceType.Museum]));
+    fixture.detectChanges();
+
+    expect(leafletMocks.mockClusterGroup.clearLayers).toHaveBeenCalled();
+    expect(leafletMocks.mockClusterGroup.addLayer).toHaveBeenCalledWith(leafletMocks.mockMarker);
   });
 
   it('should clean up map resources on destroy', () => {

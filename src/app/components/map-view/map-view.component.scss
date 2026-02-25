@@ -48,6 +48,11 @@
   box-shadow:
     0 0 0 2px var(--map-shadow-marker-ring),
     0 3px 10px var(--map-shadow-marker-drop);
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    border-color 140ms ease,
+    filter 140ms ease;
 }
 
 :host ::ng-deep .culture-place-marker__icon {
@@ -88,6 +93,24 @@
 
 :host ::ng-deep .culture-place-marker--arts-center .culture-place-marker__dot {
   --map-marker-fill: var(--map-accent-arts-center);
+}
+
+:host ::ng-deep .culture-place-marker--hovered .culture-place-marker__dot {
+  transform: scale(1.08);
+  box-shadow:
+    0 0 0 2px var(--map-shadow-marker-ring),
+    0 0 0 5px color-mix(in srgb, rgb(125 211 252) 28%, transparent),
+    0 6px 16px var(--map-shadow-marker-drop);
+}
+
+:host ::ng-deep .culture-place-marker--selected .culture-place-marker__dot {
+  transform: scale(1.16);
+  border-color: color-mix(in srgb, rgb(167 243 208) 95%, white);
+  box-shadow:
+    0 0 0 2px var(--map-shadow-marker-ring),
+    0 0 0 6px color-mix(in srgb, rgb(52 211 153) 35%, transparent),
+    0 8px 18px var(--map-shadow-marker-drop);
+  filter: saturate(1.05);
 }
 
 :host ::ng-deep .culture-place-tooltip-shell {

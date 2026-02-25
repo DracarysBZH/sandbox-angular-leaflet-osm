@@ -3,6 +3,7 @@
   class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left transition data-[state=selected]:border-emerald-300 data-[state=selected]:bg-emerald-300/10 data-[state=selected]:shadow-lg data-[state=selected]:shadow-emerald-950/30 data-[state=hovered]:border-sky-300/60 data-[state=hovered]:bg-sky-300/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-300"
   [attr.aria-pressed]="isSelected() ? 'true' : 'false'"
   [attr.data-state]="isSelected() ? 'selected' : isHovered() ? 'hovered' : 'idle'"
+  [attr.data-place-id]="place().id"
   (mouseenter)="onMouseEnter()"
   (mouseleave)="onMouseLeave()"
   (focus)="onMouseEnter()"

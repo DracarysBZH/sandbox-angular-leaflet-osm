@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  computed,
+  effect,
+  inject,
+  viewChild,
+} from '@angular/core';
 import { PlaceCardComponent } from '../place-card/place-card.component';
 import { CulturalPlaceType } from '../../models/cultural-place.model';
 import { CultureMapStateService } from '../../services/culture-map-state.service';
@@ -13,6 +21,23 @@ import { PLACE_TYPE_MARKER_VISUALS } from '../../constants/place-type-marker-vis
 })
 export class RightPanelComponent {
   protected readonly cultureMapStateService = inject(CultureMapStateService);
+  private readonly placesListRef = viewChild<ElementRef<HTMLUListElement>>('placesList');
+
+  constructor() {
+    effect(() => {
+      const selectedPlace = this.cultureMapStateService.selectedPlace?.();
+      const visiblePlaces = this.cultureMapStateService.visibleFilteredPlaces();
+      void visiblePlaces;
+
+      if (!selectedPlace) {
+        return;
+      }
+
+      queueMicrotask(() => {
+        this.scrollToSelectedCard(selectedPlace.id);
+      });
+    });
+  }
 
   protected readonly visibleCountLabel = computed(() => {
     const count = this.cultureMapStateService.visibleFilteredPlaces().length;
@@ -45,5 +70,23 @@ export class RightPanelComponent {
 
   protected getTypeLabel(type: CulturalPlaceType): string {
     return PLACE_TYPE_MARKER_VISUALS[type].label;
+  }
+
+  private scrollToSelectedCard(placeId: string): void {
+    const list = this.placesListRef()?.nativeElement;
+    if (!list) {
+      return;
+    }
+
+    const cardItem = list.querySelector<HTMLElement>(`[data-place-card-id="${placeId}"]`);
+    if (!cardItem) {
+      return;
+    }
+
+    cardItem.scrollIntoView({
+      block: 'nearest',
+      inline: 'nearest',
+      behavior: 'smooth',
+    });
   }
 }
