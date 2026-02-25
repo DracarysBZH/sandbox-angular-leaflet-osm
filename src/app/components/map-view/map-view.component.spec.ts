@@ -125,10 +125,11 @@ describe('MapViewComponent', () => {
 
     expect(moveEndHandler).toBeDefined();
 
-    vi.mocked(serviceMock.setViewportBounds).mockClear();
+    const setViewportBoundsSpy = serviceMock.setViewportBounds as ReturnType<typeof vi.fn>;
+    setViewportBoundsSpy.mockClear();
     moveEndHandler?.();
 
-    expect(serviceMock.setViewportBounds).toHaveBeenCalledWith({
+    expect(setViewportBoundsSpy).toHaveBeenCalledWith({
       north: 48.2,
       south: 48.0,
       east: -1.5,
