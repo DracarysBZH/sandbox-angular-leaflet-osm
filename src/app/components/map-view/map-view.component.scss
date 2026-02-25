@@ -1,4 +1,155 @@
 :host {
   display: block;
   min-height: 0;
+
+  --map-surface-bg: var(--app-map-neutral-900);
+  --map-overlay-bg: color-mix(in srgb, var(--app-map-neutral-900) 95%, transparent);
+  --map-cluster-bg: color-mix(in srgb, var(--app-map-neutral-700) 88%, transparent);
+  --map-border-strong: color-mix(in srgb, var(--app-map-white) 95%, transparent);
+  --map-border-soft: color-mix(in srgb, var(--app-map-white) 12%, transparent);
+  --map-text-strong: var(--app-map-neutral-50);
+  --map-text-soft: rgb(191 219 254);
+  --map-shadow-soft: color-mix(in srgb, var(--app-map-neutral-950) 35%, transparent);
+  --map-shadow-marker-ring: color-mix(in srgb, var(--app-map-neutral-950) 45%, transparent);
+  --map-shadow-marker-drop: color-mix(in srgb, var(--app-map-neutral-950) 55%, transparent);
+
+  --map-accent-museum: var(--app-map-accent-museum);
+  --map-accent-gallery: var(--app-map-accent-gallery);
+  --map-accent-theater: var(--app-map-accent-theater);
+  --map-accent-library: var(--app-map-accent-library);
+  --map-accent-heritage: var(--app-map-accent-heritage);
+  --map-accent-arts-center: var(--app-map-accent-arts-center);
+  --map-marker-fill: var(--map-accent-museum);
+  --map-marker-icon-fg: var(--app-map-white);
+}
+
+.map-surface {
+  min-height: 20rem;
+}
+
+:host ::ng-deep .leaflet-container {
+  background: var(--app-map-neutral-900);
+  font-family: inherit;
+}
+
+:host ::ng-deep .culture-place-marker {
+  background: transparent;
+  border: 0;
+}
+
+:host ::ng-deep .culture-place-marker__dot {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: 2px solid var(--map-border-strong);
+  background: var(--map-marker-fill);
+  box-shadow:
+    0 0 0 2px var(--map-shadow-marker-ring),
+    0 3px 10px var(--map-shadow-marker-drop);
+}
+
+:host ::ng-deep .culture-place-marker__icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  color: var(--map-marker-icon-fg);
+  background: currentColor;
+  mask-image: var(--marker-icon-mask);
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  -webkit-mask-image: var(--marker-icon-mask);
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+:host ::ng-deep .culture-place-marker--museum .culture-place-marker__dot {
+  --map-marker-fill: var(--map-accent-museum);
+}
+
+:host ::ng-deep .culture-place-marker--gallery .culture-place-marker__dot {
+  --map-marker-fill: var(--map-accent-gallery);
+}
+
+:host ::ng-deep .culture-place-marker--theater .culture-place-marker__dot {
+  --map-marker-fill: var(--map-accent-theater);
+}
+
+:host ::ng-deep .culture-place-marker--library .culture-place-marker__dot {
+  --map-marker-fill: var(--map-accent-library);
+}
+
+:host ::ng-deep .culture-place-marker--heritage .culture-place-marker__dot {
+  --map-marker-fill: var(--map-accent-heritage);
+}
+
+:host ::ng-deep .culture-place-marker--arts-center .culture-place-marker__dot {
+  --map-marker-fill: var(--map-accent-arts-center);
+}
+
+:host ::ng-deep .culture-place-tooltip-shell {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+:host ::ng-deep .culture-place-tooltip-shell::before {
+  border-top-color: var(--map-overlay-bg);
+}
+
+:host ::ng-deep .culture-place-tooltip {
+  min-width: 9rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.65rem;
+  border: 1px solid var(--map-border-soft);
+  background: var(--map-overlay-bg);
+  color: var(--map-text-strong);
+  box-shadow: 0 8px 22px var(--map-shadow-soft);
+}
+
+:host ::ng-deep .culture-place-tooltip__name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+:host ::ng-deep .culture-place-tooltip__meta {
+  margin-top: 0.15rem;
+  font-size: 0.68rem;
+  color: var(--map-text-soft);
+  line-height: 1.15;
+}
+
+:host ::ng-deep .marker-cluster,
+:host ::ng-deep .marker-cluster-small,
+:host ::ng-deep .marker-cluster-medium,
+:host ::ng-deep .marker-cluster-large {
+  background: transparent;
+}
+
+:host ::ng-deep .marker-cluster div,
+:host ::ng-deep .marker-cluster-small div,
+:host ::ng-deep .marker-cluster-medium div,
+:host ::ng-deep .marker-cluster-large div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin-left: 1px;
+  margin-top: 1px;
+  border-radius: 999px;
+  border: 2px solid var(--map-border-strong);
+  background: var(--map-cluster-bg);
+  color: var(--map-text-strong);
+  font-weight: 800;
+  font-size: 0.85rem;
+  box-shadow: 0 6px 14px var(--map-shadow-soft);
+}
+
+:host ::ng-deep .marker-cluster span {
+  line-height: 1;
 }

@@ -6,3 +6,18 @@ body {
 body {
   margin: 0;
 }
+
+:root {
+  --app-map-neutral-950: rgb(2 6 23);
+  --app-map-neutral-900: rgb(15 23 42);
+  --app-map-neutral-700: rgb(51 65 85);
+  --app-map-neutral-50: rgb(248 250 252);
+  --app-map-white: rgb(255 255 255);
+
+  --app-map-accent-museum: rgb(59 130 246);
+  --app-map-accent-gallery: rgb(236 72 153);
+  --app-map-accent-theater: rgb(249 115 22);
+  --app-map-accent-library: rgb(16 185 129);
+  --app-map-accent-heritage: rgb(168 85 247);
+  --app-map-accent-arts-center: rgb(234 179 8);
+}
