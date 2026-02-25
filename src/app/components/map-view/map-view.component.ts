@@ -13,6 +13,7 @@ import 'leaflet.markercluster';
 import { PLACE_TYPE_MARKER_VISUALS } from '../../constants/place-type-marker-visuals.constant';
 import { CulturalPlace } from '../../models/cultural-place.model';
 import { CultureMapStateService } from '../../services/culture-map-state.service';
+import { ViewportBounds } from '../../utils/place-filters';
 
 const RENNES_CENTER: L.LatLngExpression = [48.117266, -1.677793];
 const RENNES_INITIAL_ZOOM = 12;
@@ -72,6 +73,10 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
     });
 
     this.map.addLayer(this.markerClusterGroup);
+    this.syncViewportBounds();
+    this.map.on('moveend', () => {
+      this.syncViewportBounds();
+    });
   }
 
   private initializeMarkers(): void {
@@ -130,5 +135,21 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
       iconSize: [MARKER_SIZE, MARKER_SIZE],
       iconAnchor: [MARKER_SIZE / 2, MARKER_SIZE / 2],
     });
+  }
+
+  private syncViewportBounds(): void {
+    if (!this.map) {
+      return;
+    }
+
+    const bounds = this.map.getBounds();
+    const viewportBounds: ViewportBounds = {
+      north: bounds.getNorth(),
+      south: bounds.getSouth(),
+      east: bounds.getEast(),
+      west: bounds.getWest(),
+    };
+
+    this.cultureMapStateService.setViewportBounds(viewportBounds);
   }
 }

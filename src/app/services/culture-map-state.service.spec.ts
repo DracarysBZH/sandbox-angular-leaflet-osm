@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { CulturalPlaceType } from '../models/cultural-place.model';
 import { CultureMapStateService } from './culture-map-state.service';
+import { ViewportBounds } from '../utils/place-filters';
 
 describe('CultureMapStateService', () => {
   let service: CultureMapStateService;
@@ -35,6 +36,27 @@ describe('CultureMapStateService', () => {
     service.toggleType(targetType);
 
     expect(service.isTypeSelected(targetType)).toBe(false);
+    expect(service.visibleFilteredPlaces().length).toBe(service.allPlaces.length);
+  });
+
+  it('should filter visible places by viewport bounds', () => {
+    const place = service.allPlaces[0];
+    const viewport: ViewportBounds = {
+      north: place.lat + 0.001,
+      south: place.lat - 0.001,
+      east: place.lng + 0.001,
+      west: place.lng - 0.001,
+    };
+
+    service.setViewportBounds(viewport);
+
+    const visiblePlaces = service.visibleFilteredPlaces();
+
+    expect(visiblePlaces.some((visiblePlace) => visiblePlace.id === place.id)).toBe(true);
+    expect(visiblePlaces.length).toBeLessThan(service.allPlaces.length);
+
+    service.setViewportBounds(null);
+
     expect(service.visibleFilteredPlaces().length).toBe(service.allPlaces.length);
   });
 

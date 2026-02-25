@@ -1,6 +1,12 @@
 import { computed, Injectable, signal } from '@angular/core';
 import { RENNES_CULTURAL_PLACES } from '../data/rennes-cultural-places.mock';
 import { CulturalPlace, CulturalPlaceType } from '../models/cultural-place.model';
+import {
+  filterPlacesByTypes,
+  filterPlacesByViewport,
+  sortPlacesByName,
+  type ViewportBounds,
+} from '../utils/place-filters';
 
 @Injectable({
   providedIn: 'root',
@@ -12,17 +18,16 @@ export class CultureMapStateService {
   private readonly selectedTypesState = signal<ReadonlySet<CulturalPlaceType>>(new Set());
   private readonly selectedPlaceState = signal<CulturalPlace | null>(null);
   private readonly hoveredPlaceState = signal<CulturalPlace | null>(null);
+  private readonly viewportBoundsState = signal<ViewportBounds | null>(null);
 
   public readonly selectedPlace = this.selectedPlaceState.asReadonly();
   public readonly hoveredPlace = this.hoveredPlaceState.asReadonly();
 
   public readonly visibleFilteredPlaces = computed(() => {
-    const activeTypes = this.selectedTypesState();
-    const places = activeTypes.size
-      ? this.allPlaces.filter((place) => activeTypes.has(place.type))
-      : this.allPlaces;
+    const typeFilteredPlaces = filterPlacesByTypes(this.allPlaces, this.selectedTypesState());
+    const viewportFilteredPlaces = filterPlacesByViewport(typeFilteredPlaces, this.viewportBoundsState());
 
-    return [...places].sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+    return sortPlacesByName(viewportFilteredPlaces);
   });
 
   isTypeSelected(type: CulturalPlaceType): boolean {
@@ -48,6 +53,10 @@ export class CultureMapStateService {
 
       return next;
     });
+  }
+
+  setViewportBounds(bounds: ViewportBounds | null): void {
+    this.viewportBoundsState.set(bounds);
   }
 
   setHoveredPlace(place: CulturalPlace | null): void {
