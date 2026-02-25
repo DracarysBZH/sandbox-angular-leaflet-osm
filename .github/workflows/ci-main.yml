@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - fix/deploy
 
 permissions:
   contents: read
@@ -33,12 +32,12 @@ jobs:
 
       - name: '📦 Install'
         run: npm ci
-#
-#      - name: '🧪 Run unit tests'
-#        env:
-#          CI: 'true'
-#        run: npm test -- --watch=false
-#
+
+      - name: '🧪 Run unit tests'
+        env:
+          CI: 'true'
+        run: npm test -- --watch=false
+
       - name: '⚙️ Setup Pages'
         uses: actions/configure-pages@v5
 

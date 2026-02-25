@@ -37,6 +37,7 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
   private map: L.Map | null = null;
   private markerClusterGroup: L.MarkerClusterGroup | null = null;
   private readonly markersById = new Map<string, L.Marker>();
+  private highlightedClusterElement: HTMLElement | null = null;
 
   constructor() {
     effect(() => {
@@ -45,6 +46,7 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
       void hoveredPlace;
       void selectedPlace;
       this.refreshMarkerStyles();
+      this.refreshClusterHighlight();
     });
 
     effect(() => {
@@ -72,6 +74,7 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.clearClusterHighlight();
     this.markersById.clear();
     this.markerClusterGroup = null;
     this.map?.remove();
@@ -215,6 +218,8 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
 
       this.markerClusterGroup.addLayer(marker);
     }
+
+    this.refreshClusterHighlight();
   }
 
   private focusSelectedPlace(place: CulturalPlace): void {
@@ -270,5 +275,63 @@ export class MapViewComponent implements AfterViewInit, OnDestroy {
     };
 
     this.cultureMapStateService.setViewportBounds(viewportBounds);
+  }
+
+  private refreshClusterHighlight(): void {
+    const clusterGroup = this.markerClusterGroup;
+    if (!clusterGroup) {
+      this.clearClusterHighlight();
+      return;
+    }
+
+    const activePlace =
+      this.cultureMapStateService.hoveredPlace() ?? this.cultureMapStateService.selectedPlace();
+    if (!activePlace) {
+      this.clearClusterHighlight();
+      return;
+    }
+
+    const marker = this.markersById.get(activePlace.id);
+    if (!marker) {
+      this.clearClusterHighlight();
+      return;
+    }
+
+    const getVisibleParent = (
+      clusterGroup as unknown as { getVisibleParent?: (layer: L.Layer) => unknown }
+    ).getVisibleParent;
+
+    if (typeof getVisibleParent !== 'function') {
+      this.clearClusterHighlight();
+      return;
+    }
+
+    const visibleParent = getVisibleParent.call(clusterGroup, marker);
+    if (visibleParent === marker || !visibleParent) {
+      this.clearClusterHighlight();
+      return;
+    }
+
+    const clusterElement = (
+      visibleParent as { getElement?: () => HTMLElement | null }
+    ).getElement?.();
+
+    if (!clusterElement) {
+      this.clearClusterHighlight();
+      return;
+    }
+
+    if (this.highlightedClusterElement === clusterElement) {
+      return;
+    }
+
+    this.clearClusterHighlight();
+    clusterElement.classList.add('marker-cluster--linked-highlight');
+    this.highlightedClusterElement = clusterElement;
+  }
+
+  private clearClusterHighlight(): void {
+    this.highlightedClusterElement?.classList.remove('marker-cluster--linked-highlight');
+    this.highlightedClusterElement = null;
   }
 }
